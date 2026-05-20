@@ -11,6 +11,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const NoteCard = ({
   handleDownloadFile,
@@ -33,7 +34,7 @@ const NoteCard = ({
   isFileDownloaded: (fileName: string) => boolean;
   downloadingFile: string | null;
   isAdmin: boolean;
-  viewFile: (fileName: string) => void;
+  viewFile: (fileName: string, fileUrl: string) => void;
 }) => {
   const mode = useThemeStore((state) => state.theme);
   const theme = mode === "dark" ? darkTheme : lightTheme;
@@ -41,154 +42,163 @@ const NoteCard = ({
   const { card, modalBg, text, primary } = theme;
 
   return (
-    <FlatList
-      data={[...groupFiles].reverse()}
-      keyExtractor={(item) => item.id.toString()}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{
-        paddingBottom: 120,
-      }}
-      renderItem={({ item }) => (
-        <Pressable
-          onPress={() => viewFile(item.fileName)}
-          style={[
-            styles.noteCard,
-            {
-              backgroundColor: card,
-            },
-          ]}
-        >
-          <View
+    <SafeAreaView edges={["bottom"]}>
+      <FlatList
+        data={[...groupFiles].reverse()}
+        keyExtractor={(item) => item.id.toString()}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingBottom: 120,
+        }}
+        renderItem={({ item }) => (
+          <Pressable
+            onPress={() => viewFile(item.fileName, item.fileUrl)}
             style={[
-              styles.iconContainer,
+              styles.noteCard,
               {
-                backgroundColor: modalBg,
+                backgroundColor: card,
               },
             ]}
           >
-            <Ionicons name="document-text-outline" size={22} color={primary} />
-          </View>
-
-          <View style={styles.noteInfo}>
-            <Text
-              numberOfLines={1}
-              ellipsizeMode="tail"
+            <View
               style={[
-                styles.fileName,
+                styles.iconContainer,
                 {
-                  color: text,
+                  backgroundColor: modalBg,
                 },
               ]}
             >
-              {item.fileName}
-            </Text>
+              <Ionicons
+                name="document-text-outline"
+                size={22}
+                color={primary}
+              />
+            </View>
 
-            <Text
-              numberOfLines={1}
-              style={[
-                styles.uploadInfo,
-                {
-                  color: text,
-                  opacity: 0.55,
-                },
-              ]}
-            >
-              Uploaded by {item.uploadedByUsername}
-            </Text>
+            <View style={styles.noteInfo}>
+              <Text
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={[
+                  styles.fileName,
+                  {
+                    color: text,
+                  },
+                ]}
+              >
+                {item.fileName}
+              </Text>
 
-            <View style={styles.bottomRow}>
-              <View style={styles.leftSection}>
-                {!isFileDownloaded(item.fileName) && (
-                  <Pressable
-                    onPress={(event) => {
-                      event.stopPropagation();
+              <Text
+                numberOfLines={1}
+                style={[
+                  styles.uploadInfo,
+                  {
+                    color: text,
+                    opacity: 0.55,
+                  },
+                ]}
+              >
+                Uploaded by {item.uploadedByUsername}
+              </Text>
 
-                      handleDownloadFile(item.fileUrl, item.fileName);
-                    }}
-                    style={[
-                      styles.downloadButton,
-                      {
-                        backgroundColor: modalBg,
-                      },
-                    ]}
-                  >
-                    {downloadingFile === item.fileName ? (
-                      <>
-                        <ActivityIndicator color={text} size="small" />
+              <View style={styles.bottomRow}>
+                <View style={styles.leftSection}>
+                  {!isFileDownloaded(item.fileName) && (
+                    <Pressable
+                      onPress={(event) => {
+                        event.stopPropagation();
 
-                        <Text
-                          style={[
-                            styles.downloadText,
-                            {
-                              color: text,
-                            },
-                          ]}
-                        >
-                          Downloading...
-                        </Text>
-                      </>
-                    ) : (
-                      <>
-                        <Ionicons
-                          name="download-outline"
-                          size={17}
-                          color={text}
-                        />
+                        handleDownloadFile(item.fileUrl, item.fileName);
+                      }}
+                      style={[
+                        styles.downloadButton,
+                        {
+                          backgroundColor: modalBg,
+                        },
+                      ]}
+                    >
+                      {downloadingFile === item.fileName ? (
+                        <>
+                          <ActivityIndicator color={text} size="small" />
 
-                        <Text
-                          style={[
-                            styles.downloadText,
-                            {
-                              color: text,
-                            },
-                          ]}
-                        >
-                          Download
-                        </Text>
-                      </>
-                    )}
-                  </Pressable>
+                          <Text
+                            style={[
+                              styles.downloadText,
+                              {
+                                color: text,
+                              },
+                            ]}
+                          >
+                            Downloading...
+                          </Text>
+                        </>
+                      ) : (
+                        <>
+                          <Ionicons
+                            name="download-outline"
+                            size={17}
+                            color={text}
+                          />
+
+                          <Text
+                            style={[
+                              styles.downloadText,
+                              {
+                                color: text,
+                              },
+                            ]}
+                          >
+                            Download
+                          </Text>
+                        </>
+                      )}
+                    </Pressable>
+                  )}
+                </View>
+
+                {isFileDownloaded(item.fileName) && (
+                  <View style={styles.actionButtons}>
+                    <Pressable
+                      onPress={(event) => {
+                        event.stopPropagation();
+
+                        handleShareFile(item.fileName);
+                      }}
+                      style={styles.actionButton}
+                    >
+                      <Ionicons
+                        name="share-social-outline"
+                        size={18}
+                        color={text}
+                      />
+                    </Pressable>
+                  </View>
                 )}
-              </View>
+                <View>
+                  {isAdmin && (
+                    <Pressable
+                      onPress={(event) => {
+                        event.stopPropagation();
 
-              <View style={styles.actionButtons}>
-                <Pressable
-                  onPress={(event) => {
-                    event.stopPropagation();
-
-                    handleShareFile(item.fileName);
-                  }}
-                  style={styles.actionButton}
-                >
-                  <Ionicons
-                    name="share-social-outline"
-                    size={18}
-                    color={text}
-                  />
-                </Pressable>
-
-                {isAdmin && (
-                  <Pressable
-                    onPress={(event) => {
-                      event.stopPropagation();
-
-                      handleDeleteConfirm(item.id);
-                    }}
-                    style={styles.actionButton}
-                  >
-                    {fileDeleteLoading && item.id === selectedFileId ? (
-                      <ActivityIndicator size="small" color={text} />
-                    ) : (
-                      <Ionicons name="trash-outline" size={18} color={text} />
-                    )}
-                  </Pressable>
-                )}
+                        handleDeleteConfirm(item.id);
+                      }}
+                      style={styles.actionButton}
+                    >
+                      {fileDeleteLoading && item.id === selectedFileId ? (
+                        <ActivityIndicator size="small" color={text} />
+                      ) : (
+                        <Ionicons name="trash-outline" size={18} color={text} />
+                      )}
+                    </Pressable>
+                  )}
+                </View>
               </View>
             </View>
-          </View>
-        </Pressable>
-      )}
-    />
+          </Pressable>
+        )}
+      />
+    </SafeAreaView>
   );
 };
 
@@ -201,6 +211,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 22,
     marginBottom: 14,
+    marginHorizontal: 12,
   },
 
   iconContainer: {

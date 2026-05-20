@@ -1,14 +1,15 @@
 # NotesRoom
 
-A modern collaborative notes and file sharing application built with React Native, Expo, and Spring Boot.
+A modern collaborative notes and file sharing application built with React Native, Expo, Clerk Authentication, and Spring Boot.
 
 ---
 
-## Features
+# Features
 
-- JWT Authentication
-- Access Token & Refresh Token Flow
-- Persistent Login using SecureStore
+- Clerk Authentication
+- Google OAuth Login
+- Email & Password Authentication
+- Persistent Sessions
 - Protected Routes
 - Create and Join Groups
 - Invite Code Based Group Joining
@@ -18,9 +19,9 @@ A modern collaborative notes and file sharing application built with React Nativ
 - Download Shared Files
 - Delete Shared Files
 - Dark & Light Theme Support
-- Modern Mobile UI
+- Modern Responsive UI
 - Axios Interceptors
-- Refresh Token Handling
+- Secure API Authentication
 - Zustand State Management
 
 ---
@@ -33,15 +34,15 @@ A modern collaborative notes and file sharing application built with React Nativ
 - Expo
 - Expo Router
 - TypeScript
+- Clerk Authentication
 - Zustand
 - Axios
-- Expo SecureStore
+- React Native Size Matters
 
 ## Backend
 
 - Spring Boot
 - Spring Security
-- JWT Authentication
 - PostgreSQL
 - Hibernate / JPA
 - Cloudinary
@@ -59,18 +60,21 @@ app/
 components/
 api/
 store/
-hook/
+constants/
 ```
 
 ---
 
 # Authentication
 
-- JWT based authentication
-- Secure token storage
-- Automatic token refresh
-- Persistent sessions
-- Protected navigation
+## Clerk Authentication
+
+- Email & Password Login
+- Google OAuth Login
+- Persistent Sessions
+- Protected Navigation
+- Secure Token Handling
+- Session Management
 
 ---
 
@@ -80,6 +84,7 @@ hook/
 
 - Login
 - Signup
+- Google OAuth
 - Logout
 - Persistent Login
 
@@ -104,8 +109,9 @@ hook/
 
 - Dark Mode
 - Responsive UI
+- Modern Mobile Design
 - Smooth Loading States
-- Modern Card Design
+- Floating Action Buttons
 - Modal Based Actions
 
 ---
@@ -122,25 +128,22 @@ Example:
 
 ```properties
 spring.application.name=
+
 spring.datasource.url=
 spring.datasource.username=
 spring.datasource.password=
-spring.jpa.hibernate.ddl-auto=
-spring.jpa.show-sql=
-spring.jpa.properties.hibernate.dialect=
 
-jwt.secretKey=
-jwt.refresh-ttl=
+spring.jpa.hibernate.ddl-auto=
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=
 
 cloudinary.cloud_name=
 cloudinary.api_key=
 cloudinary.api_secret=
 
-Admin_Password=
-
-spring.servlet.multipart.enabled=
-spring.servlet.multipart.max-file-size=
-spring.servlet.multipart.max-request-size=
+spring.servlet.multipart.enabled=true
+spring.servlet.multipart.max-file-size=50MB
+spring.servlet.multipart.max-request-size=50MB
 
 spring.datasource.hikari.maximum-pool-size=
 spring.datasource.hikari.minimum-idle=
@@ -154,18 +157,55 @@ server.address=
 
 ---
 
-# Frontend Setup
+# Frontend Environment Variables
 
-## Install Dependencies
+Create:
+
+```txt
+.env
+```
+
+Example:
+
+```env
+EXPO_PUBLIC_BASE_URL=
+EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=
+EXPO_PUBLIC_CLERK_GOOGLE_WEB_CLIENT_ID=
+EXPO_PUBLIC_CLERK_GOOGLE_ANDROID_CLIENT_ID=
+```
+
+---
+
+# Clerk Setup
+
+## Enable
+
+- Email & Password Authentication
+- Google OAuth
+
+## Configure Google OAuth
+
+Add:
+
+- Android Client ID
+- iOS Client ID
+
+inside Clerk Dashboard.
+
+---
+
+# Install Dependencies
+
+## Frontend
 
 ```bash
-npm install
+bun install
 ```
 
 or
 
 ```bash
-bun install
+npm install
 ```
 
 ---
@@ -173,13 +213,29 @@ bun install
 # Start Expo App
 
 ```bash
-npx expo start
+bunx expo start
 ```
 
 or
 
 ```bash
-bunx expo start
+npx expo start
+```
+
+---
+
+# Run Android Development Build
+
+```bash
+bunx expo run:android
+```
+
+---
+
+# Run iOS Development Build
+
+```bash
+bunx expo run:ios
 ```
 
 ---
@@ -202,11 +258,11 @@ mvnw.cmd spring-boot:run
 
 # API Features
 
-- JWT Authentication
-- Refresh Token Rotation
+- Clerk Protected APIs
 - Group APIs
 - File Upload APIs
 - Member Management APIs
+- Cloudinary File Storage
 
 ---
 
@@ -229,6 +285,8 @@ mvnw.cmd spring-boot:run
 - Group Avatars
 - File Preview
 - Search & Filtering
+- Voice Notes
+- Real-time Collaboration
 
 ---
 

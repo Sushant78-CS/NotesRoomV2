@@ -17,14 +17,19 @@ import java.util.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Users implements UserDetails {
+public class Users {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
+    private String clerkId;
+
     private String username;
-    private String password;
+
+    @Column(unique = true, nullable = false)
+    private String email;
 
     @OneToMany(mappedBy = "uploadedBy")
     @JsonIgnore
@@ -41,29 +46,4 @@ public class Users implements UserDetails {
     @OneToMany(mappedBy = "createdBy")
     @JsonIgnore
     private Set<Group> createdGroups = new HashSet<>();
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
 }

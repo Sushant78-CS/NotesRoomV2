@@ -42,7 +42,7 @@ public class FileService {
     private final GroupMemberRepository groupMemberRepository;
     private final FileRepository fileRepository;
 
-    public FileResponseDto uploadFile(MultipartFile file, Long uploadedById, Long groupId) {
+    public FileResponseDto uploadFile(MultipartFile file, String clerkId, Long groupId) {
         System.out.println("UPLOAD API HIT OUTSIDE");
         try {
             System.out.println("UPLOAD API HIT INSIDE TRY");
@@ -68,7 +68,7 @@ public class FileService {
             }
 
             String fileUrl = uploadResult.get("secure_url").toString();
-            Users users = userRepository.findById(uploadedById)
+            Users users = userRepository.findByClerkId(clerkId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             Group group = groupRepository.findById(groupId)
@@ -95,9 +95,11 @@ public class FileService {
         return file.getFileUrl();
     }
 
-    public Boolean deleteFile(Long fileId, Long groupId, Long userId) {
+    public Boolean deleteFile(Long fileId, Long groupId, String clerkId) {
         try {
-            GroupMember member = groupMemberRepository.findByUser_IdAndGroup_Id(userId, groupId)
+            Users user = userRepository.findByClerkId(clerkId)
+                    .orElseThrow(() -> new RuntimeException("user not found"));
+            GroupMember member = groupMemberRepository.findByUser_IdAndGroup_Id(user.getId(), groupId)
                     .orElseThrow(() -> new AccessDeniedException("Access denied"));
 
             if (member.getRole() != RoleType.ROLE_ADMIN) {
@@ -127,8 +129,10 @@ public class FileService {
         }
     }
 
-    public List<FileResponseDto> getAllFiles(Users users) {
-        List<FileEntity> files = fileRepository.findByUploadedById(users.getId());
+    public List<FileResponseDto> getAllFiles(String clerkId) {
+        Users user = userRepository.findByClerkId(clerkId)
+                .orElseThrow(() -> new RuntimeException("user not found"));
+        List<FileEntity> files = fileRepository.findByUploadedById(user.getId());
         return files.stream().map((file) -> (
                 new FileResponseDto(
                         file.getId(), file.getFileUrl(), file.getFileName(), file.getUploadedBy().getUsername()
@@ -136,14 +140,16 @@ public class FileService {
         )).toList();
     }
 
-    public FileResponseDto updateFile(Long fileId, MultipartFile newfile, Long userId) {
+    public FileResponseDto updateFile(Long fileId, MultipartFile newfile, String clerkId) {
         try {
+            Users user = userRepository.findByClerkId(clerkId)
+                    .orElseThrow(() -> new RuntimeException("user not found"));
             FileEntity file = fileRepository.findById(fileId).orElseThrow(() -> new RuntimeException("File not found"));
             String oldPublicId = file.getPublicId();
             if (newfile.isEmpty()) {
                 throw new RuntimeException("File is empty");
             }
-            if (!file.getUploadedBy().getId().equals(userId)) {
+            if (!file.getUploadedBy().getId().equals(user.getId())) {
                 throw new RuntimeException("Unauthorized User");
             }
             Map upload = cloudinary.uploader().upload(

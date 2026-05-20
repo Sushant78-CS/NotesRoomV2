@@ -6,7 +6,6 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -24,14 +23,16 @@ const JoinGroupPage = () => {
     mode.theme === "dark" ? darkTheme : lightTheme;
   const [inviteCode, setInviteCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [inviteCodeError, setInviteCodeError] = useState("");
 
   const router = useRouter();
 
   const handleJoinGroup = async () => {
     if (!inviteCode.trim()) {
-      Alert.alert("Error", "Please enter invite code");
+      setInviteCodeError("Please enter invite code");
       return;
     }
+    setInviteCodeError("");
     try {
       setLoading(true);
       const res = await joinGroup(inviteCode);
@@ -47,55 +48,14 @@ const JoinGroupPage = () => {
   if (loading) {
     return (
       <SafeAreaView
-        style={{
-          flex: 1,
-          backgroundColor: background,
-          justifyContent: "center",
-          alignItems: "center",
-          paddingHorizontal: 24,
-        }}
+        style={[styles.loadingContainer, { backgroundColor: background }]}
       >
-        <View
-          style={{
-            width: "100%",
-            backgroundColor: card,
-            paddingVertical: 32,
-            paddingHorizontal: 24,
-            borderRadius: 24,
-            alignItems: "center",
-            shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: 4,
-            },
-            shadowOpacity: 0.1,
-            shadowRadius: 10,
-            elevation: 6,
-          }}
-        >
+        <View style={[styles.loadingCard, { backgroundColor: card }]}>
           <ActivityIndicator size="large" color={primary} />
-
-          <Text
-            style={{
-              marginTop: 18,
-              fontSize: 18,
-              fontWeight: "700",
-              color: text,
-            }}
-          >
+          <Text style={[styles.loadingTitle, { color: text }]}>
             Joining Group
           </Text>
-
-          <Text
-            style={{
-              marginTop: 8,
-              fontSize: 14,
-              color: text,
-              opacity: 0.6,
-              textAlign: "center",
-              lineHeight: 22,
-            }}
-          >
+          <Text style={[styles.loadingSubtitle, { color: text }]}>
             Please wait while we add you to the group...
           </Text>
         </View>
@@ -134,11 +94,17 @@ const JoinGroupPage = () => {
                 placeholder="Enter invite code"
                 placeholderTextColor="#000"
                 value={inviteCode}
-                onChangeText={setInviteCode}
+                onChangeText={(text) => {
+                  setInviteCode(text);
+                  setInviteCodeError("");
+                }}
                 autoCapitalize="none"
                 style={[styles.input]}
               />
             </View>
+            {inviteCodeError ? (
+              <Text style={styles.error}>{inviteCodeError}</Text>
+            ) : null}
 
             <Pressable
               style={[styles.button, { backgroundColor: primary }]}
@@ -215,7 +181,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 16,
     height: 58,
-    marginBottom: 24,
+    marginBottom: 8,
   },
 
   input: {
@@ -237,5 +203,47 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 17,
     fontWeight: "700",
+  },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+
+  loadingCard: {
+    width: "100%",
+    paddingVertical: 32,
+    paddingHorizontal: 24,
+    borderRadius: 24,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  loadingTitle: {
+    marginTop: 18,
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  loadingSubtitle: {
+    marginTop: 8,
+    fontSize: 14,
+    opacity: 0.6,
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  error: {
+    color: "red",
+    fontSize: 14,
+    marginTop: 5,
+    marginBottom: 10,
+    marginLeft: 4,
   },
 });

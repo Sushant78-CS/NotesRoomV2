@@ -12,6 +12,7 @@ import com.example.NotesRoom.repository.GroupRepository;
 import com.example.NotesRoom.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,9 +31,9 @@ public class GroupService {
     private final GroupMemberRepository groupMemberRepository;
 
     @Transactional
-    public GroupResponseDto createGroup(Users user, String groupName) {
+    public GroupResponseDto createGroup(String clerkId, String groupName) {
         try {
-            Users creatorUser = userRepository.findById(user.getId())
+            Users creatorUser = userRepository.findByClerkId(clerkId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
             Group group = Group.builder()
                     .createdBy(creatorUser)
@@ -53,8 +54,8 @@ public class GroupService {
         }
     }
 
-    public JoinGroupResponseDto joinGroup(Users user, String inviteCode) {
-        Users joinUser = userRepository.findById(user.getId())
+    public JoinGroupResponseDto joinGroups(String clerkId, String inviteCode) {
+        Users joinUser = userRepository.findByClerkId(clerkId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Group group = groupRepository.findByInviteCode(inviteCode)
@@ -74,7 +75,9 @@ public class GroupService {
         return new JoinGroupResponseDto(member.getGroup().getName(), member.getUser().getUsername(), member.getGroup().getId());
     }
 
-    public List<UserDto> getAllGroupUsers(Users user, Long groupId) {
+    public List<UserDto> getAllGroupUsers(String clerkId, Long groupId) {
+        Users user = userRepository.findByClerkId(clerkId).orElseThrow(() -> new RuntimeException("User not fond"));
+
         GroupMember memberShip = groupMemberRepository.findByUser_IdAndGroup_Id(user.getId(), groupId)
                 .orElseThrow(() -> new RuntimeException("Access denied: Not a group member"));
 
@@ -90,7 +93,8 @@ public class GroupService {
         )).toList();
     }
 
-    public void deleteGroup(Users user, Long groupId) {
+    public void deleteGroup(String clerkId, Long groupId) {
+        Users user = userRepository.findByClerkId(clerkId).orElseThrow(() -> new RuntimeException("User not found"));
         GroupMember admin = groupMemberRepository.findByUser_IdAndGroup_Id(user.getId(), groupId)
                 .orElseThrow(() -> new RuntimeException("Not a group member"));
 
@@ -108,7 +112,9 @@ public class GroupService {
         groupRepository.delete(group);
     }
 
-    public void deleteGroupUser(Users user, Long targetUserId, Long groupId) {
+    public void deleteGroupUser(String clerkId, Long targetUserId, Long groupId) {
+        Users user = userRepository.findByClerkId(clerkId)
+                .orElseThrow(() -> new RuntimeException("user not found"));
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
         if (!group.getCreatedBy().getId().equals(user.getId())) {
@@ -122,7 +128,9 @@ public class GroupService {
         groupMemberRepository.delete(targetUser);
     }
 
-    public void leaveGroup(Users user, Long groupId) {
+    public void leaveGroup(String clerkId, Long groupId) {
+        Users user = userRepository.findByClerkId(clerkId)
+                .orElseThrow(() -> new RuntimeException("user not found"));
         GroupMember member = groupMemberRepository.findByUser_IdAndGroup_Id(user.getId(), groupId)
                 .orElseThrow(() -> new RuntimeException("Not a group member"));
 
@@ -137,7 +145,9 @@ public class GroupService {
 
     }
 
-    public List<AllGroupResponseDto> getAllGroup(Users user) {
+    public List<AllGroupResponseDto> getAllGroup(String clerkId) {
+        Users user = userRepository.findByClerkId(clerkId)
+                .orElseThrow(() -> new RuntimeException("user not found"));
         List<GroupMember> memberships = groupMemberRepository.findByUser_Id(user.getId());
 
         return memberships.stream().map(group -> {
@@ -147,17 +157,23 @@ public class GroupService {
     }
 
     @Transactional(readOnly = true)
-    public List<AllGroupResponseDto> getAllJoinedGroup(Long userId) {
-        return groupMemberRepository.findGroupDtosByUserIdAndRole(userId, RoleType.ROLE_USER);
+    public List<AllGroupResponseDto> getAllJoinedGroup(String clerkId) {
+        Users user = userRepository.findByClerkId(clerkId)
+                .orElseThrow(() -> new RuntimeException("user not found"));
+        return groupMemberRepository.findGroupDtosByUserIdAndRole(user.getId(), RoleType.ROLE_USER);
     }
 
     @Transactional(readOnly = true)
-    public List<AllGroupResponseDto> getAllCreatedGroup(Long userId) {
-        return groupMemberRepository.findGroupDtosByUserIdAndRole(userId, RoleType.ROLE_ADMIN);
+    public List<AllGroupResponseDto> getAllCreatedGroup(String clerkId) {
+        Users user = userRepository.findByClerkId(clerkId)
+                .orElseThrow(() -> new RuntimeException("user not found"));
+        return groupMemberRepository.findGroupDtosByUserIdAndRole(user.getId(), RoleType.ROLE_ADMIN);
     }
 
-    public GroupDetailDto getGroupDetail(Long groupId, Long userId) {
-        GroupMember member1 = groupMemberRepository.findByUser_IdAndGroup_Id(userId, groupId)
+    public GroupDetailDto getGroupDetail(Long groupId, String clerkId) {
+        Users user = userRepository.findByClerkId(clerkId)
+                .orElseThrow(() -> new RuntimeException("user not found"));
+        GroupMember member1 = groupMemberRepository.findByUser_IdAndGroup_Id(user.getId(), groupId)
                 .orElseThrow(() -> new RuntimeException("Access denied"));
 
         Group group = groupRepository.findById(groupId)
@@ -175,9 +191,10 @@ public class GroupService {
         );
     }
 
-    public List<MemberResponseDto> getMembers(Long userId, Long groupId) throws AccessDeniedException {
-
-        boolean isMember = groupMemberRepository.existsByUser_IdAndGroup_Id(userId, groupId);
+    public List<MemberResponseDto> getMembers(String clerkId, Long groupId) throws AccessDeniedException {
+        Users user = userRepository.findByClerkId(clerkId)
+                .orElseThrow(() -> new RuntimeException("user not found"));
+        boolean isMember = groupMemberRepository.existsByUser_IdAndGroup_Id(user.getId(), groupId);
 
         if (!isMember) {
             throw new AccessDeniedException("Access denied");
@@ -186,12 +203,14 @@ public class GroupService {
         List<GroupMember> members = groupMemberRepository.findByGroup_Id(groupId);
 
         return members.stream().map(member ->
-                new MemberResponseDto(member.getUser().getId(), member.getUser().getUsername(), member.getRole())
+                new MemberResponseDto(member.getUser().getId(), member.getUser().getClerkId(), member.getUser().getUsername(), member.getRole())
         ).toList();
     }
 
-    public GroupFilesResponseDto getFiles(Long userId, Long groupId) {
-        GroupMember member = groupMemberRepository.findByUser_IdAndGroup_Id(userId, groupId)
+    public GroupFilesResponseDto getFiles(String clerkId, Long groupId) {
+        Users user = userRepository.findByClerkId(clerkId)
+                .orElseThrow(() -> new RuntimeException("user not found"));
+        GroupMember member = groupMemberRepository.findByUser_IdAndGroup_Id(user.getId(), groupId)
                 .orElseThrow(() -> new AccessDeniedException("Access denied"));
 
         List<FileEntity> files = fileRepository.findByGroup_Id(groupId);

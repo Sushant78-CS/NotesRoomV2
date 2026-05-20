@@ -12,6 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class MemberResponseDto {
     private Long id;
+    private String clerkId;
     private String username;
     private RoleType role;
 }

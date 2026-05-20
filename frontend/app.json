@@ -9,9 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.notesroom.app"
     },
     "android": {
+      "package": "com.notesroom.app",
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -41,8 +43,12 @@
         }
       ],
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      "@clerk/expo"
     ],
+    "extra": {
+      "EXPO_PUBLIC_CLERK_GOOGLE_ANDROID_CLIENT_ID": "600681166668-8m9hh28c62372mpm5kmndhbopmt4m3lj.apps.googleusercontent.com"
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

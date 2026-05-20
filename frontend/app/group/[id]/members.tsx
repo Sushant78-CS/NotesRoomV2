@@ -1,11 +1,11 @@
 import { getGroupDetail, getMembersInGroup } from "@/api/user";
 import { darkTheme, lightTheme } from "@/constants/theme";
-import { useAuth } from "@/hook/useAuth";
 import { useThemeStore } from "@/store/themeStore";
 import { GroupDetail, GroupMember } from "@/types/groupTypes";
+import { useUser } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -17,25 +17,26 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { moderateScale } from "react-native-size-matters";
 
 const GroupDetailPage = () => {
   const mode = useThemeStore((s) => s.theme);
   const { background, text, card, primary, modalBg } =
     mode === "dark" ? darkTheme : lightTheme;
-  const router = useRouter();
   const { id: groupId } = useLocalSearchParams();
-  const { user } = useAuth();
+  const { user } = useUser();
+  console.log("current user id : ", user?.id);
 
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [groupDetail, setGroupDetail] = useState<GroupDetail | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const currentUsername = user?.username;
-
-  const isAdmin = groupMembers?.some(
+  const currentUserId = user?.id;
+  const isAdmin = groupMembers.some(
     (member) =>
-      member.username === currentUsername && member.role === "ROLE_ADMIN",
+      member.clerkId === currentUserId && member.role === "ROLE_ADMIN",
   );
+  console.log("isAdmin", isAdmin);
 
   useEffect(() => {
     console.log("groupId", groupId);
@@ -100,7 +101,7 @@ const GroupDetailPage = () => {
           <View>
             <Text style={styles.pageTitle}>Members</Text>
             <Text style={styles.pageSubtitle}>
-              {isAdmin ? "Manage and view group members" : "View members"}
+              {isAdmin ? "Manage and view group members" : "View group members"}
             </Text>
             <View style={styles.codeContainer}>
               <Text style={styles.codeLabel}>Group Code</Text>
@@ -156,12 +157,12 @@ const GroupDetailPage = () => {
               style={[
                 styles.adminAvatar,
                 {
-                  backgroundColor: `${primary}15`,
+                  backgroundColor: primary,
                 },
               ]}
             >
               <Text style={styles.adminAvatarText}>
-                {admin.username.charAt(0).toUpperCase()}
+                {admin?.username?.charAt(0)?.toUpperCase()}
               </Text>
             </View>
 
@@ -174,7 +175,7 @@ const GroupDetailPage = () => {
                   },
                 ]}
               >
-                {admin.username}
+                {admin?.username}
               </Text>
 
               <View style={[styles.adminBadge, { backgroundColor: primary }]}>
@@ -221,7 +222,7 @@ const GroupDetailPage = () => {
                     },
                   ]}
                 >
-                  {item.username.charAt(0).toUpperCase()}
+                  {item?.username?.charAt(0)?.toUpperCase()}
                 </Text>
               </View>
 
@@ -235,7 +236,7 @@ const GroupDetailPage = () => {
                     },
                   ]}
                 >
-                  {item.username}
+                  {item?.username}
                 </Text>
 
                 <Text
@@ -277,22 +278,23 @@ const GroupDetailPage = () => {
     </SafeAreaView>
   );
 };
+
 export default GroupDetailPage;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 18,
   },
 
   codeContainer: {
-    marginTop: 12,
+    marginTop: moderateScale(12, 0.3),
   },
 
   codeLabel: {
-    fontSize: 13,
+    fontSize: moderateScale(13, 0.3),
     fontWeight: "600",
     color: "rgba(255,255,255,0.75)",
-    marginBottom: 8,
+    marginBottom: moderateScale(8, 0.3),
     letterSpacing: 0.3,
   },
 
@@ -303,18 +305,18 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     gap: 4,
     paddingHorizontal: 12,
-    borderRadius: 16,
+    borderRadius: 12,
   },
 
   codeText: {
-    fontSize: 14,
+    fontSize: moderateScale(14, 0.3),
     fontWeight: "700",
     letterSpacing: 1.2,
   },
 
   copyButton: {
-    width: 32,
-    height: 32,
+    width: moderateScale(32, 0.3),
+    height: moderateScale(32, 0.3),
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
@@ -322,15 +324,16 @@ const styles = StyleSheet.create({
   },
 
   headerCard: {
-    borderRadius: 28,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     overflow: "hidden",
-    padding: 22,
-    marginBottom: 22,
+    padding: moderateScale(22, 0.3),
+    marginBottom: moderateScale(22, 0.3),
 
     shadowColor: "#000",
     shadowOffset: {
-      width: 0,
-      height: 6,
+      width: moderateScale(0, 0.3),
+      height: moderateScale(6, 0.3),
     },
     shadowOpacity: 0.12,
     shadowRadius: 10,
@@ -341,9 +344,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -40,
     right: -20,
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: moderateScale(160, 0.3),
+    height: moderateScale(160, 0.3),
+    borderRadius: moderateScale(80, 0.3),
     backgroundColor: "rgba(255,255,255,0.08)",
   },
 
@@ -355,39 +358,39 @@ const styles = StyleSheet.create({
 
   pageTitle: {
     color: "#fff",
-    fontSize: 30,
+    fontSize: moderateScale(30, 0.3),
     fontWeight: "700",
   },
 
   pageSubtitle: {
-    marginTop: 6,
+    marginTop: moderateScale(6, 0.3),
     color: "rgba(255,255,255,0.82)",
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: moderateScale(14, 0.3),
+    lineHeight: moderateScale(20, 0.3),
   },
 
   memberCountBadge: {
-    minWidth: 54,
-    height: 54,
+    minWidth: moderateScale(54, 0.3),
+    height: moderateScale(54, 0.3),
     borderRadius: 18,
     backgroundColor: "rgba(255,255,255,0.16)",
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 14,
+    paddingHorizontal: moderateScale(14, 0.3),
   },
 
   memberCountText: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: moderateScale(18, 0.3),
     fontWeight: "700",
   },
 
   adminCard: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 18,
-    borderRadius: 22,
-    marginBottom: 18,
+    padding: moderateScale(18, 0.3),
+    borderRadius: moderateScale(22, 0.3),
+    marginBottom: moderateScale(18, 0.3),
 
     shadowColor: "#000",
     shadowOffset: {
@@ -397,95 +400,97 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 6,
     elevation: 2,
+    marginHorizontal: 12,
   },
 
   adminAvatar: {
-    width: 62,
-    height: 62,
-    borderRadius: 22,
+    width: moderateScale(62, 0.3),
+    height: moderateScale(62, 0.3),
+    borderRadius: moderateScale(22, 0.3),
     justifyContent: "center",
     alignItems: "center",
   },
 
   adminAvatarText: {
-    fontSize: 24,
+    fontSize: moderateScale(24, 0.3),
     fontWeight: "700",
     color: "#fff",
   },
 
   adminInfo: {
     flex: 1,
-    marginLeft: 16,
+    marginLeft: moderateScale(16, 0.3),
   },
 
   adminName: {
-    fontSize: 17,
+    fontSize: moderateScale(17, 0.3),
     fontWeight: "700",
   },
 
   adminBadge: {
-    marginTop: 8,
+    marginTop: moderateScale(8, 0.3),
     alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 5,
-    paddingHorizontal: 12,
+    paddingVertical: moderateScale(5, 0.3),
+    paddingHorizontal: moderateScale(12, 0.3),
     borderRadius: 12,
     textAlign: "center",
   },
 
   adminBadgeText: {
     color: "#fff",
-    fontSize: 12,
+    fontSize: moderateScale(12, 0.3),
     fontWeight: "600",
   },
 
   memberCard: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    padding: moderateScale(16, 0.3),
     borderRadius: 20,
-    marginBottom: 14,
+    marginBottom: moderateScale(14, 0.3),
+    marginHorizontal: moderateScale(18, 0.3),
   },
 
   avatar: {
-    width: 54,
-    height: 54,
+    width: moderateScale(54, 0.3),
+    height: moderateScale(54, 0.3),
     borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
   },
 
   avatarText: {
-    fontSize: 20,
+    fontSize: moderateScale(20, 0.3),
     fontWeight: "700",
   },
 
   memberInfo: {
     flex: 1,
-    marginLeft: 14,
+    marginLeft: moderateScale(14, 0.3),
   },
 
   memberName: {
-    fontSize: 16,
+    fontSize: moderateScale(16, 0.3),
     fontWeight: "600",
   },
 
   memberRole: {
-    marginTop: 4,
-    fontSize: 13,
+    marginTop: moderateScale(4, 0.3),
+    fontSize: moderateScale(13, 0.3),
   },
 
   memberIndexBadge: {
-    minWidth: 36,
-    height: 36,
+    minWidth: moderateScale(36, 0.3),
+    height: moderateScale(36, 0.3),
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
   },
 
   memberIndexText: {
-    fontSize: 13,
+    fontSize: moderateScale(13, 0.3),
     fontWeight: "700",
   },
 
@@ -496,19 +501,19 @@ const styles = StyleSheet.create({
   },
 
   topSection: {
-    marginTop: 14,
-    marginBottom: 28,
+    marginTop: moderateScale(14, 0.3),
+    marginBottom: moderateScale(28, 0.3),
   },
 
   memberCount: {
-    marginTop: 6,
-    fontSize: 14,
+    marginTop: moderateScale(6, 0.3),
+    fontSize: moderateScale(14, 0.3),
     fontWeight: "400",
   },
 
   adminLabel: {
-    marginTop: 4,
-    fontSize: 13,
+    marginTop: moderateScale(4, 0.3),
+    fontSize: moderateScale(13, 0.3),
     fontWeight: "500",
     letterSpacing: 0.2,
   },

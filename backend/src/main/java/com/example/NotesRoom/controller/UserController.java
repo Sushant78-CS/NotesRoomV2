@@ -10,6 +10,7 @@ import org.apache.catalina.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -25,65 +26,73 @@ public class UserController {
     private final GroupService groupService;
     private final FileService fileService;
 
-    @PutMapping("/become-admin")
-    public ResponseEntity<UserResponseDto> upgradeToAdmin(@RequestBody AdminUpgradeRequestDto code) {
-        Users users1 = userService.becomeAdmin(code.getCode());
-        UserResponseDto response = new UserResponseDto(users1.getId(), users1.getUsername(), users1.getRole());
-        return ResponseEntity.ok(response);
-    }
+//    @PutMapping("/become-admin")
+//    public ResponseEntity<UserResponseDto> upgradeToAdmin(@RequestBody AdminUpgradeRequestDto code) {
+//        Users users1 = userService.becomeAdmin(code.getCode());
+//        UserResponseDto response = new UserResponseDto(users1.getId(), users1.getUsername(), users1.getRole());
+//        return ResponseEntity.ok(response);
+//}
 
     @PostMapping("/join-group")
-    public ResponseEntity<JoinGroupResponseDto> joinGroup(@AuthenticationPrincipal Users user, @RequestBody JoinGroupRequestDto inviteCode) {
-        JoinGroupResponseDto joinGroupResponseDto = groupService.joinGroup(user, inviteCode.getInviteCode());
+    public ResponseEntity<?> joinGroup(@AuthenticationPrincipal Jwt jwt, @RequestBody JoinGroupRequestDto inviteCode) {
+        String clerkId = jwt.getSubject();
+        JoinGroupResponseDto joinGroupResponseDto = groupService.joinGroups(clerkId, inviteCode.getInviteCode());
 
         return ResponseEntity.ok(joinGroupResponseDto);
     }
 
     @DeleteMapping("/group/{groupId}")
-    public ResponseEntity<String> leaveGroup(@PathVariable Long groupId, @AuthenticationPrincipal Users user) {
-        groupService.leaveGroup(user, groupId);
+    public ResponseEntity<String> leaveGroup(@PathVariable Long groupId, @AuthenticationPrincipal Jwt jwt) {
+        String clerkId = jwt.getSubject();
+        groupService.leaveGroup(clerkId, groupId);
 
-        return ResponseEntity.ok(user.getUsername() + " has leave the group");
+        return ResponseEntity.ok(jwt.getSubject() + " has leave the group");
     }
 
     @PostMapping("/create-group")
-    public ResponseEntity<GroupResponseDto> createGroup(@RequestBody CreateGroupRequestDto groupName, @AuthenticationPrincipal Users user) {
-        GroupResponseDto group = groupService.createGroup(user, groupName.getGroupName());
+    public ResponseEntity<GroupResponseDto> createGroup(@RequestBody CreateGroupRequestDto groupName, @AuthenticationPrincipal Jwt jwt) {
+        String clerkId = jwt.getSubject();
+        GroupResponseDto group = groupService.createGroup(clerkId, groupName.getGroupName());
 
         return ResponseEntity.ok(group);
     }
 
     @GetMapping("/all-group")
-    public ResponseEntity<List<AllGroupResponseDto>> getAllGroup(@AuthenticationPrincipal Users user) {
-        List<AllGroupResponseDto> allGroup = groupService.getAllGroup(user);
+    public ResponseEntity<List<AllGroupResponseDto>> getAllGroup(@AuthenticationPrincipal Jwt jwt) {
+        String clerkId = jwt.getSubject();
+        List<AllGroupResponseDto> allGroup = groupService.getAllGroup(clerkId);
 
         return ResponseEntity.ok(allGroup);
     }
 
     @GetMapping("/joined-group")
-    public ResponseEntity<List<AllGroupResponseDto>> getAllJoinedGroup(@AuthenticationPrincipal Users user) {
-        List<AllGroupResponseDto> allJoinedGroup = groupService.getAllJoinedGroup(user.getId());
+    public ResponseEntity<List<AllGroupResponseDto>> getAllJoinedGroup(@AuthenticationPrincipal Jwt jwt) {
+        String clerkId = jwt.getSubject();
+        List<AllGroupResponseDto> allJoinedGroup = groupService.getAllJoinedGroup(clerkId);
 
         return ResponseEntity.ok(allJoinedGroup);
     }
 
     @GetMapping("/group/{groupId}")
-    public ResponseEntity<GroupDetailDto> getGroupDetail(@PathVariable Long groupId, @AuthenticationPrincipal Users user) {
-        GroupDetailDto groupDetail = groupService.getGroupDetail(groupId, user.getId());
+    public ResponseEntity<GroupDetailDto> getGroupDetail(@PathVariable Long groupId, @AuthenticationPrincipal Jwt jwt) {
+        String clerkId = jwt.getSubject();
+        GroupDetailDto groupDetail = groupService.getGroupDetail(groupId, clerkId);
 
         return ResponseEntity.ok(groupDetail);
     }
 
     @GetMapping("group/{groupId}/members")
-    public ResponseEntity<List<MemberResponseDto>> getMembers(@PathVariable Long groupId, @AuthenticationPrincipal Users user) throws AccessDeniedException {
-        List<MemberResponseDto> members = groupService.getMembers(user.getId(), groupId);
+    public ResponseEntity<List<MemberResponseDto>> getMembers(@PathVariable Long groupId, @AuthenticationPrincipal Jwt jwt) throws AccessDeniedException {
+        String clerkId = jwt.getSubject();
+        List<MemberResponseDto> members = groupService.getMembers(clerkId, groupId);
 
         return ResponseEntity.ok(members);
     }
 
     @GetMapping("group/{groupId}/files")
-    public ResponseEntity<GroupFilesResponseDto> getFiles(@PathVariable Long groupId, @AuthenticationPrincipal Users user) throws AccessDeniedException {
-        GroupFilesResponseDto files = groupService.getFiles(user.getId(), groupId);
+    public ResponseEntity<GroupFilesResponseDto> getFiles(@PathVariable Long groupId, @AuthenticationPrincipal Jwt jwt) throws AccessDeniedException {
+        String clerkId = jwt.getSubject();
+        GroupFilesResponseDto files = groupService.getFiles(clerkId, groupId);
 
         return ResponseEntity.ok(files);
     }

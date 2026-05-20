@@ -10,5 +10,3 @@ const onboarding = () => {
 };
 
 export default onboarding;
-
-const styles = StyleSheet.create({});

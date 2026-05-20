@@ -5,7 +5,10 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -20,19 +23,19 @@ const CreateGroup = () => {
     mode === "dark" ? darkTheme : lightTheme;
 
   const [groupName, setGroupName] = useState("");
-  const [description, setDescription] = useState("");
+  const [groupNameError, setGroupNameError] = useState("");
 
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
-      Alert.alert("Error", "Please enter group name");
+      setGroupNameError("Please enter group name");
       return;
     }
+
+    setGroupNameError("");
 
     try {
       const res = await createGroup(groupName);
       setGroupName("");
-      setDescription("");
-      Alert.alert("Success", "Group created successfully");
       router.back();
     } catch (error) {
       console.log("error in create group api : ", error);
@@ -45,36 +48,67 @@ const CreateGroup = () => {
       edges={["top", "bottom"]}
       style={[styles.container, { backgroundColor: background }]}
     >
-      <View
-        style={[styles.card, { backgroundColor: card, borderColor: primary }]}
+      <KeyboardAvoidingView
+        style={[styles.container, { backgroundColor: background }]}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <Text style={[styles.heading, { color: text }]}>Create New Group</Text>
-        <Text style={[styles.subHeading, { color: text }]}>
-          Build your own group and invite members
-        </Text>
-
-        <View style={styles.inputContainer}>
-          <Text style={[styles.label, { color: text }]}>Group Name</Text>
-
-          <TextInput
-            placeholder="Enter group name"
-            placeholderTextColor="#888"
-            value={groupName}
-            onChangeText={setGroupName}
-            style={[styles.input]}
-          />
-        </View>
-        <Pressable
-          style={[styles.button, { backgroundColor: primary }]}
-          onPress={handleCreateGroup}
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag"
         >
-          <Text style={[styles.buttonText, { color: text }]}>Create Group</Text>
-        </Pressable>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: card, borderColor: primary },
+            ]}
+          >
+            <Text style={[styles.heading, { color: text }]}>
+              Create New Group
+            </Text>
+            <Text style={[styles.subHeading, { color: text }]}>
+              Build your own group and invite members
+            </Text>
 
-        <Pressable style={styles.cancelButton} onPress={() => router.back()}>
-          <Text style={[styles.cancelText, { color: text }]}>Cancel</Text>
-        </Pressable>
-      </View>
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: text }]}>Group Name</Text>
+
+              <TextInput
+                placeholder="Enter group name"
+                placeholderTextColor="#888"
+                value={groupName}
+                onChangeText={(text) => {
+                  setGroupName(text);
+                  setGroupNameError("");
+                }}
+                style={[
+                  styles.input,
+                  { borderColor: groupNameError ? "red" : "#888" },
+                ]}
+              />
+              {groupNameError ? (
+                <Text style={styles.errorText}>{groupNameError}</Text>
+              ) : null}
+            </View>
+            <Pressable
+              style={[styles.button, { backgroundColor: primary }]}
+              onPress={handleCreateGroup}
+            >
+              <Text style={[styles.buttonText, { color: text }]}>
+                Create Group
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={styles.cancelButton}
+              onPress={() => router.back()}
+            >
+              <Text style={[styles.cancelText, { color: text }]}>Cancel</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -84,8 +118,6 @@ export default CreateGroup;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    padding: 20,
   },
 
   card: {
@@ -154,5 +186,15 @@ const styles = StyleSheet.create({
     color: "#666",
     fontSize: 15,
     fontWeight: "600",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginTop: 5,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: 20,
   },
 });
