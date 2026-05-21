@@ -16,35 +16,6 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    @Value("${Admin_Password}")
-    private String secretCode;
-//
-//    public Users becomeAdmin(String code) {
-//        System.out.println("SERVICE HIT");
-//        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//
-//        if (!(principal instanceof UserDetails)) {
-//            throw new RuntimeException("Invalid principal");
-//        }
-//
-//        UserDetails userDetails = ((UserDetails) principal);
-//        Users users = userRepository.findByUsername(userDetails.getUsername());
-//
-//        if (users == null) {
-//            throw new RuntimeException("User not authenticated");
-//        }
-//        if (!code.equals(secretCode)) {
-//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid admin code");
-//        }
-//        if (users.getRole() == RoleType.ROLE_ADMIN) {
-//            throw new RuntimeException("Already an Admin");
-//        }
-//        Users usersFromDb = userRepository.findById(users.getId()).orElseThrow(() -> new RuntimeException("User not found"));
-//        usersFromDb.setRole(RoleType.ROLE_ADMIN);
-//        Users savedUser = userRepository.save(usersFromDb);
-//        return savedUser;
-//    }
-
     public void syncUser(
             String clerkId,
             SyncUserDto dto

@@ -6,7 +6,6 @@ import com.example.NotesRoom.service.FileService;
 import com.example.NotesRoom.service.GroupService;
 import com.example.NotesRoom.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,13 +24,6 @@ public class UserController {
     private final UserService userService;
     private final GroupService groupService;
     private final FileService fileService;
-
-//    @PutMapping("/become-admin")
-//    public ResponseEntity<UserResponseDto> upgradeToAdmin(@RequestBody AdminUpgradeRequestDto code) {
-//        Users users1 = userService.becomeAdmin(code.getCode());
-//        UserResponseDto response = new UserResponseDto(users1.getId(), users1.getUsername(), users1.getRole());
-//        return ResponseEntity.ok(response);
-//}
 
     @PostMapping("/join-group")
     public ResponseEntity<?> joinGroup(@AuthenticationPrincipal Jwt jwt, @RequestBody JoinGroupRequestDto inviteCode) {
