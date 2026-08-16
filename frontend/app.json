@@ -14,7 +14,6 @@
     },
     "android": {
       "package": "com.notesroom.app",
-      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -47,11 +46,16 @@
       "@clerk/expo"
     ],
     "extra": {
-      "EXPO_PUBLIC_CLERK_GOOGLE_ANDROID_CLIENT_ID": "600681166668-8m9hh28c62372mpm5kmndhbopmt4m3lj.apps.googleusercontent.com"
+      "EXPO_PUBLIC_CLERK_GOOGLE_ANDROID_CLIENT_ID": "600681166668-8m9hh28c62372mpm5kmndhbopmt4m3lj.apps.googleusercontent.com",
+      "router": {},
+      "eas": {
+        "projectId": "f3cbcf46-a5f0-4e5e-a874-b21683351e85"
+      }
     },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "owner": "sushant878s-organization"
   }
 }

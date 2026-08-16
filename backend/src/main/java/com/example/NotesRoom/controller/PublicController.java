@@ -13,4 +13,9 @@ public class PublicController {
         return "test";
     }
 
+    @GetMapping("/health")
+    public String health(){
+        return "NotesRoom backend is running";
+    }
+
 }
